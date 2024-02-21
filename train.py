@@ -65,6 +65,8 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument('--batch_size', type=int, default=32, help='Batch size')
 parser.add_argument('--sample', action='store_true', help='Sample usage flag')  # This will be True if specified, otherwise False
+parser.add_argument('--augAll', action='store_true', help='Augment data flag')  # This will be True if specified, otherwise False
+parser.add_argument('--dupCount', type=int, default=0, help='Number of duplicates to create')
 parser.add_argument('--sampleSize', type=str, default="F5", help='sample size')
 parser.add_argument('--totalNumRuns', type=int, default=20, help='Total number of runs')
 parser.add_argument('--augmentation', type=str, default="None", help='Type of data augmentation')
@@ -85,7 +87,9 @@ args.batch_size = 32
 # args.sample = True
 # args.totalNumRuns = 1
 # args.augmentation = "clahe"
-# args.sampleSize = "F4"
+# args.sampleSize = "F5"
+# args.augAll = True
+# args.dupCount = 0
 
 # Get the current date and time
 current_datetime = datetime.now()
@@ -94,7 +98,8 @@ current_datetime = datetime.now()
 # For example, YYYYMMDD_HHMMSS
 filename_datetime_string = current_datetime.strftime("%Y%m%d_%H%M%S")
 
-args.testName = "test_EfficientNet_" + "sample_" + str(args.sample) + "_Runs_" + str(args.totalNumRuns) + "_" + args.augmentation + "_sampleSize_" + str(args.sampleSize) + "_" + filename_datetime_string
+#args.testName = "test_EfficientNet_" + "sample_" + str(args.sample) + "_Runs_" + str(args.totalNumRuns) + "_" + args.augmentation + "_sampleSize_" + str(args.sampleSize) + "_" + filename_datetime_string
+args.testName = "T_EffNet_" + "smpl_" + str(args.sample) + "_Rs_" + str(args.totalNumRuns) + "_" + args.augmentation + "_smpleS_" + str(args.sampleSize) +"augAll_" +str(args.augAll) +"_dupC_" +str(args.dupCount) + "_" + filename_datetime_string
 
 args.output_folder = r"C:\Users\Eliana\Documents\GitHub\Skin-lesion-classification\Analysis\Reruns/" + args.testName + r"/"
 
@@ -105,6 +110,8 @@ print(args.augmentation)
 print(args.testName)
 print(args.output_folder)
 print(epochs)
+print(args.augAll)
+print(args.dupCount)
 
 notifier = TelegramNotifier(prefix=args.notifier_prefix)
 notifier.send_message("Started")
@@ -164,7 +171,12 @@ elif (args.sampleSize == "F1"):
 
 # Randomly sample 30% of the data without replacement
 numberofTestingSample = int(len_fitzpatrick6 * 0.3)
-numberofTrainingSample = numberofSample-numberofTestingSample
+
+# if augment all, use F6 datasize, augment all, hence set training sample size to be the same as F6
+if (args.augAll):
+    numberofTrainingSample = len(fitzpatrick6) - numberofTestingSample
+else:
+    numberofTrainingSample = numberofSample-numberofTestingSample
 
 numRuns = 0
 
@@ -200,55 +212,6 @@ while (numRuns < args.totalNumRuns):
         fitzpatrick6_test = fitzpatrick6.sample(n=numberofTestingSample, random_state=None)  # Setting a random_state for reproducibility
         fitzpatrick6_rest = fitzpatrick6.drop(fitzpatrick6_test.index)
 
-        # augment the data
-        augmentSampleImage = pd.DataFrame()  # Initialize as an empty DataFrame
-
-        if (numberofTrainingSample > len(fitzpatrick6_rest)):
-            numOfDuplicates = int(numberofTrainingSample/len(fitzpatrick6_rest))
-            augment_imageMetadata = duplicate_images(fitzpatrick6_rest, imageColName, images_folder, numOfDuplicates, args.augmentation)
-            augSampleNum = numberofTrainingSample - len(fitzpatrick6_rest)
-            augment_image = augment_imageMetadata.sample(augSampleNum, random_state=None)
-            augmentSampleImage = pd.concat([augmentSampleImage, augment_image], ignore_index=True)
-            print (f"Length of augmentSampleImage F6: {len(augmentSampleImage)}")
-        if (numberofTrainingSample > len(fitzpatrick5_rest)):
-            numOfDuplicates = int(numberofTrainingSample/len(fitzpatrick5_rest))
-            augment_imageMetadata = duplicate_images(fitzpatrick5_rest, imageColName, images_folder, numOfDuplicates, args.augmentation)
-            augSampleNum = numberofTrainingSample - len(fitzpatrick5_rest)
-            augment_image = augment_imageMetadata.sample(augSampleNum, random_state=None)
-            augmentSampleImage = pd.concat([augmentSampleImage, augment_image], ignore_index=True)
-            print (f"Length of augmentSampleImage F5: {len(augmentSampleImage)}")
-        if (numberofTrainingSample > len(fitzpatrick4_rest)):
-            numOfDuplicates = int(numberofTrainingSample/len(fitzpatrick4_rest))
-            augment_imageMetadata = duplicate_images(fitzpatrick4_rest, imageColName, images_folder, numOfDuplicates, args.augmentation)
-            augSampleNum = numberofTrainingSample - len(fitzpatrick4_rest)
-            augment_image = augment_imageMetadata.sample(augSampleNum, random_state=None)
-            augmentSampleImage = pd.concat([augmentSampleImage, augment_image], ignore_index=True)
-            print (f"Length of augmentSampleImage F4: {len(augmentSampleImage)}")
-        if (numberofTrainingSample > len(fitzpatrick3_rest)):
-            numOfDuplicates = int(numberofTrainingSample/len(fitzpatrick3_rest))
-            augment_imageMetadata = duplicate_images(fitzpatrick3_rest, imageColName, images_folder, numOfDuplicates, args.augmentation)
-            augSampleNum = numberofTrainingSample - len(fitzpatrick3_rest)
-            augment_image = augment_imageMetadata.sample(augSampleNum, random_state=None)
-            augmentSampleImage = pd.concat([augmentSampleImage, augment_image], ignore_index=True)
-            print (f"Length of augmentSampleImage F3: {len(augmentSampleImage)}")
-        if (numberofTrainingSample > len(fitzpatrick2_rest)):
-            numOfDuplicates = int(numberofTrainingSample/len(fitzpatrick2_rest))
-            augment_imageMetadata = duplicate_images(fitzpatrick2_rest, imageColName, images_folder, numOfDuplicates, args.augmentation)
-            augSampleNum = numberofTrainingSample - len(fitzpatrick2_rest)
-            augment_image = augment_imageMetadata.sample(augSampleNum, random_state=None)
-            augmentSampleImage = pd.concat([augmentSampleImage, augment_image], ignore_index=True)
-            print (f"Length of augmentSampleImage F2: {len(augmentSampleImage)}")
-        if (numberofTrainingSample > len(fitzpatrick1_rest)):
-            numOfDuplicates = int(numberofTrainingSample/len(fitzpatrick1_rest))
-            augment_imageMetadata = duplicate_images(fitzpatrick1_rest, imageColName, images_folder, numOfDuplicates, args.augmentation)
-            augSampleNum = numberofTrainingSample - len(fitzpatrick1_rest)
-            augment_image = augment_imageMetadata.sample(augSampleNum, random_state=None)
-            augmentSampleImage = pd.concat([augmentSampleImage, augment_image], ignore_index=True)
-            print (f"Length of augmentSampleImage F1: {len(augmentSampleImage)}")
-
-        augmented_Sample = augmentSampleImage
-        print (f"Length of augmented_Sample: {len(augmented_Sample)}")
-
         # sample the rest
         if numberofTrainingSample < len(fitzpatrick1_rest) and args.sample:
             fitzpatrick1S = fitzpatrick1_rest.sample(numberofTrainingSample, random_state=None)
@@ -279,6 +242,87 @@ while (numRuns < args.totalNumRuns):
             fitzpatrick6S = fitzpatrick6_rest.sample(numberofTrainingSample, random_state=None)
         else :
             fitzpatrick6S = fitzpatrick6_rest
+
+        # augment the data
+        augmentSampleImage = pd.DataFrame()  # Initialize as an empty DataFrame
+
+
+        if args.augAll:
+            if args.dupCount > 0:
+                numOfDuplicates = args.dupCount
+            else:   
+                numOfDuplicates = int((numberofSample - len(fitzpatrick1_test)) / len(fitzpatrick6_rest))
+
+        # since F6 has least amount of data, when augAll, numOfDuplicates is based on F6
+        if (numberofTrainingSample > len(fitzpatrick6_rest) or args.augAll):
+            if not args.augAll:
+                numOfDuplicates = int(numberofTrainingSample/len(fitzpatrick6_rest))
+                augment_imageMetadata = duplicate_images(fitzpatrick6_rest, imageColName, images_folder, numOfDuplicates, args.augmentation)
+                augSampleNum = numberofTrainingSample - len(fitzpatrick6_rest)
+                augment_image = augment_imageMetadata.sample(augSampleNum, random_state=None)
+            else:
+                augment_imageMetadata = duplicate_images(fitzpatrick6S, imageColName, images_folder, numOfDuplicates, args.augmentation)
+                augment_image = augment_imageMetadata
+            augmentSampleImage = pd.concat([augmentSampleImage, augment_image], ignore_index=True)
+            print (f"Length of augmentSampleImage F6: {len(augmentSampleImage)}")
+        if (numberofTrainingSample > len(fitzpatrick5_rest) or args.augAll):
+            if not args.augAll:
+                numOfDuplicates = int(numberofTrainingSample/len(fitzpatrick5_rest))
+                augment_imageMetadata = duplicate_images(fitzpatrick5_rest, imageColName, images_folder, numOfDuplicates, args.augmentation)
+                augSampleNum = numberofTrainingSample - len(fitzpatrick5_rest)
+                augment_image = augment_imageMetadata.sample(augSampleNum, random_state=None)
+            else:
+                augment_imageMetadata = duplicate_images(fitzpatrick5S, imageColName, images_folder, numOfDuplicates, args.augmentation)
+                augment_image = augment_imageMetadata
+            augmentSampleImage = pd.concat([augmentSampleImage, augment_image], ignore_index=True)
+            print (f"Length of augmentSampleImage F5: {len(augmentSampleImage)}")
+        if (numberofTrainingSample > len(fitzpatrick4_rest) or args.augAll):
+            if not args.augAll:
+                numOfDuplicates = int(numberofTrainingSample/len(fitzpatrick4_rest))
+                augment_imageMetadata = duplicate_images(fitzpatrick4_rest, imageColName, images_folder, numOfDuplicates, args.augmentation)
+                augSampleNum = numberofTrainingSample - len(fitzpatrick4_rest)
+                augment_image = augment_imageMetadata.sample(augSampleNum, random_state=None)
+            else:
+                augment_imageMetadata = duplicate_images(fitzpatrick4S, imageColName, images_folder, numOfDuplicates, args.augmentation)
+                augment_image = augment_imageMetadata
+            augmentSampleImage = pd.concat([augmentSampleImage, augment_image], ignore_index=True)
+            print (f"Length of augmentSampleImage F4: {len(augmentSampleImage)}")
+        if (numberofTrainingSample > len(fitzpatrick3_rest) or args.augAll):
+            if not args.augAll:
+                numOfDuplicates = int(numberofTrainingSample/len(fitzpatrick3_rest))
+                augment_imageMetadata = duplicate_images(fitzpatrick3_rest, imageColName, images_folder, numOfDuplicates, args.augmentation)
+                augSampleNum = numberofTrainingSample - len(fitzpatrick3_rest)
+                augment_image = augment_imageMetadata.sample(augSampleNum, random_state=None)
+            else:
+                augment_imageMetadata = duplicate_images(fitzpatrick3S, imageColName, images_folder, numOfDuplicates, args.augmentation)
+                augment_image = augment_imageMetadata
+            augmentSampleImage = pd.concat([augmentSampleImage, augment_image], ignore_index=True)
+            print (f"Length of augmentSampleImage F3: {len(augmentSampleImage)}")
+        if (numberofTrainingSample > len(fitzpatrick2_rest) or args.augAll):
+            if not args.augAll:
+                numOfDuplicates = int(numberofTrainingSample/len(fitzpatrick2_rest))
+                augment_imageMetadata = duplicate_images(fitzpatrick2_rest, imageColName, images_folder, numOfDuplicates, args.augmentation)
+                augSampleNum = numberofTrainingSample - len(fitzpatrick2_rest)
+                augment_image = augment_imageMetadata.sample(augSampleNum, random_state=None)
+            else:
+                augment_imageMetadata = duplicate_images(fitzpatrick2S, imageColName, images_folder, numOfDuplicates, args.augmentation)
+                augment_image = augment_imageMetadata
+            augmentSampleImage = pd.concat([augmentSampleImage, augment_image], ignore_index=True)
+            print (f"Length of augmentSampleImage F2: {len(augmentSampleImage)}")
+        if (numberofTrainingSample > len(fitzpatrick1_rest) or args.augAll):
+            if not args.augAll:
+                numOfDuplicates = int(numberofTrainingSample/len(fitzpatrick1_rest))
+                augment_imageMetadata = duplicate_images(fitzpatrick1_rest, imageColName, images_folder, numOfDuplicates, args.augmentation)
+                augSampleNum = numberofTrainingSample - len(fitzpatrick1_rest)
+                augment_image = augment_imageMetadata.sample(augSampleNum, random_state=None)
+            else:
+                augment_imageMetadata = duplicate_images(fitzpatrick1S, imageColName, images_folder, numOfDuplicates, args.augmentation)
+                augment_image = augment_imageMetadata
+            augmentSampleImage = pd.concat([augmentSampleImage, augment_image], ignore_index=True)
+            print (f"Length of augmentSampleImage F1: {len(augmentSampleImage)}")
+
+        augmented_Sample = augmentSampleImage
+        print (f"Length of augmented_Sample: {len(augmented_Sample)}")
 
         # if (args.sample):
         #     #sample
