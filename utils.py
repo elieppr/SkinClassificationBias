@@ -70,7 +70,6 @@ def kmeans_segmentation(image, force_copy=True, mask=None):
 def augment_imageWithMetadata(metadata, index, imgColName, folderpath):
     oridinal_metadata = metadata.iloc[index].copy()  # Create a copy of the DataFrame row
     baseImageName = oridinal_metadata[imgColName]
-    #image_path = os.path.join(folderpath, oridinal_metadata[imgColName]) + ".jpg"
     image_path = os.path.join(folderpath, oridinal_metadata[imgColName])
     if not (image_path.endswith('.jpg') or image_path.endswith('.png')):
         image_path += ".jpg"
@@ -81,41 +80,6 @@ def augment_imageWithMetadata(metadata, index, imgColName, folderpath):
     vertical_flip = cv2.flip(image, 0)
     horizontal_flip = cv2.flip(image, 1)
     randomNum = random.random()
-
-    # newImage = cv2.rotate(image, cv2.ROTATE_90_CLOCKWISE)
-    # newImageName = baseImageName + str(randomNum) + 'ROTATE_90_CLOCKWISE.jpg'
-    # augmented_images.append(newImage)
-    # oridinal_metadata[imgColName] = newImageName
-    # save_augmented_image(newImage, newImageName, folderpath)
-    # new_metadata.append(oridinal_metadata)
-
-    # newImage = cv2.rotate(image, cv2.ROTATE_90_COUNTERCLOCKWISE)
-    # newImageName = baseImageName + str(randomNum) + 'ROTATE_90_COUNTERCLOCKWISE.jpg'
-    # augmented_images.append(newImage)
-    # oridinal_metadata[imgColName] = newImageName
-    # save_augmented_image(newImage, newImageName, folderpath)
-    # new_metadata.append(oridinal_metadata)
-
-    # newImage = cv2.rotate(image, cv2.ROTATE_180)
-    # newImageName = baseImageName + str(randomNum) + 'ROTATE_180.jpg'
-    # augmented_images.append(newImage)
-    # oridinal_metadata[imgColName] = newImageName
-    # save_augmented_image(newImage, newImageName, folderpath)
-    # new_metadata.append(oridinal_metadata)
-
-    # newImage = vertical_flip
-    # newImageName = baseImageName + str(randomNum) + 'vertical_flip.jpg'
-    # augmented_images.append(newImage)
-    # oridinal_metadata[imgColName] = newImageName
-    # save_augmented_image(newImage, newImageName, folderpath)
-    # new_metadata.append(oridinal_metadata)
-
-    # newImage = horizontal_flip
-    # newImageName = baseImageName + str(randomNum) + 'horizontal_flip.jpg'
-    # augmented_images.append(newImage)
-    # oridinal_metadata[imgColName] = newImageName
-    # save_augmented_image(newImage, newImageName, folderpath)
-    # new_metadata.append(oridinal_metadata)
 
     newImage = cv2.rotate(vertical_flip, cv2.ROTATE_90_CLOCKWISE)
     newImageName = baseImageName + str(randomNum) + 'vf_ROTATE_90_CLOCKWISE.jpg'
@@ -253,12 +217,6 @@ def augment_image(image):
     augmented_images = []
     vertical_flip = cv2.flip(image, 0)
     horizontal_flip = cv2.flip(image, 1)
-    # #augmented_images.append(cv2.rotate(image, cv2.ROTATE_90_CLOCKWISE))
-    # #augmented_images.append(cv2.rotate(image, cv2.ROTATE_90_COUNTERCLOCKWISE))
-    # #augmented_images.append(cv2.rotate(image, cv2.ROTATE_180))
-    # #augmented_images.append(vertical_flip)
-    # augmented_images.append(horizontal_flip)
-    # augmented_images.append(cv2.rotate(vertical_flip, cv2.ROTATE_90_CLOCKWISE))
     augmented_images.append(cv2.rotate(horizontal_flip, cv2.ROTATE_90_CLOCKWISE))
     clahe = cv2.createCLAHE(clipLimit=random.randint(1.5,2.5), tileGridSize=(8,8))
     cl1 = clahe.apply(image)
@@ -523,16 +481,10 @@ def duplicate_images(df, imgColName, image_folder, count_dup, type_aug):
 from PIL import Image
 def load_and_preprocess_image(file_path, target_size=(224, 224)):
     img = cv2.resize(load_image(file_path), target_size)
-    # img = Image.open(file_path + ".jpg")
-    # img = img.resize(target_size)
-    #imgarray = np.array(img) / 255.0  # Normalize pixel values
     imgarray = np.array(img) 
     return imgarray
 
 def preprocess_image(image, target_size=(224, 224)):
     img = cv2.resize(image, target_size)
-    # img = Image.open(file_path + ".jpg")
-    # img = img.resize(target_size)
-    #imgarray = np.array(img) / 255.0  # Normalize pixel values
     imgarray = np.array(img) 
     return imgarray

@@ -1,0 +1,129 @@
+1. install python
+2. run pip install -r requirements.txt
+3. download fitzpatrick17k.csv from https://github.com/mattgroh/fitzpatrick17k 
+4. download the images skip fitzpatrick_scale = -1 by running the following:
+
+# Define the CSV file path and the destination folder
+
+$csvFile = "C:\Users\Eliana\Downloads\fitzpatrick17k.csv"
+
+$destFolder = "C:\Users\Eliana\Downloads\Fitzpatrick17kImages"
+ 
+# Create the destination folder if it does not exist
+
+if (!(Test-Path $destFolder)) {
+
+    New-Item -ItemType Directory -Path $destFolder
+
+}
+ 
+# Define an array to store the data for the CSV file
+
+$csvData = @()
+ 
+# Initialize a counter for naming the images
+
+$imageCounter = 1
+ 
+# Import the CSV file and loop through each row
+
+Import-Csv $csvFile | ForEach-Object {
+ 
+    # Get the image URL from the current row
+
+    $url = $_.url
+ 
+    # Get the three_partition_label from the current row
+
+    $label = $_.three_partition_label
+ 
+    # Get the fitspatrick_scale from the current row
+
+    $fitzpatrickScale = $_.fitzpatrick_scale
+
+    # Check if $url is not empty, $label is not "non-neoplastic", and $fitzpatrickScale is not -1
+
+    if (-not [string]::IsNullOrEmpty($url) -and $label -ne "non-neoplastic" -and $fitzpatrickScale -ne -1) {
+# Get the file extension from the URL
+
+        $fileExtension = [System.IO.Path]::GetExtension($url)
+ 
+        # Check if the file extension is empty or not ".jpg", and add ".jpg" if necessary
+
+        if ([string]::IsNullOrEmpty($fileExtension) -or $fileExtension -ne ".jpg") {
+
+            $fileExtension = ".jpg"
+
+        }
+ 
+        # Define the image file name
+
+        $imageFileName = "fitzImage$imageCounter$fileExtension"
+ 
+        # Define the full path for the destination file
+
+        $destFile = Join-Path $destFolder $imageFileName
+ 
+        try {
+
+            # Download the image using Invoke-WebRequest or Start-BitsTransfer
+
+            # Uncomment the line that you want to use and comment the other one
+ 
+            Invoke-WebRequest -Uri $url -OutFile $destFile
+
+            # Start-BitsTransfer -Source $url -Destination $destFile
+
+            # Add data to the CSV array
+
+            $csvData += [PSCustomObject]@{
+
+                'imgName' = $imageFileName
+
+                'fitspatrick_scale' = $fitzpatrickScale
+
+                'three_partition_label' = $label
+
+            }
+ 
+            Write-Host "Downloaded: $destFile"
+
+            $imageCounter++
+
+        }
+
+        catch {
+
+            Write-Host "Error downloading image from URL: $url"
+
+            Write-Host "Error message: $_"
+
+        }
+
+    }
+
+    else {
+
+        Write-Host "Skipping empty URL, non-neoplastic label, or fitspatrick_scale of -1 in CSV row."
+
+    }
+
+}
+ 
+# Define the CSV file path
+
+$csvFilePath = "C:\Users\Eliana\Downloads\Fitzpatrick17kImages\FitzpatrickData.csv"
+ 
+# Export the CSV data to the file
+
+$csvData | Export-Csv -Path $csvFilePath -NoTypeInformation
+
+Write-Host "CSV file created: $csvFilePath"
+
+
+pip install pandas
+pip install wrapt==1.14.0
+pip install python-dotenv
+pip install matplotlib
+
+
